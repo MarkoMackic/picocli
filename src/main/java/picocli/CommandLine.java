@@ -10933,6 +10933,16 @@ public class CommandLine {
                         throw new InitializationException(cmd.name() + " (" + cls.getName() + ") has a subcommand (" + sub.getName() + ") that is a subclass of itself");
                     }
                     try {
+                        Method m = cls.getDeclaredMethod("picocliFilterSubcommand", Class.class);
+
+                        if (Modifier.isPublic(m.getModifiers()) && Modifier.isStatic(m.getModifiers())) {
+                            Object ret = m.invoke(null, sub);
+                            if(ret instanceof Boolean && (Boolean) ret) continue;
+                        }
+                    }
+                    catch (Exception e){} // we don't care about the exception
+
+                    try {
                         if (Help.class == sub) { throw new InitializationException(Help.class.getName() + " is not a valid subcommand. Did you mean " + HelpCommand.class.getName() + "?"); }
                         CommandLine subcommandLine = toCommandLine(sub, factory);
                         parent.addSubcommand(subcommandName(sub), subcommandLine);
